@@ -50,6 +50,87 @@ router.get("/users", async (req, res) => {
       }
 })
 
+// POST route to add friends to a user
+router.put('/users/:userId/add-friends', async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const { friendIds } = req.body;
+  
+      // Find the user by ID
+      const user = await User.findById(userId);
+  
+      // Check if the user exists
+      if (!user) {
+        return res.status(404).json({ error: 'User not found.' });
+      }
+  
+      // Add new friends to the user's friends array
+      user.friends.push(...friendIds);
+  
+      // Save the updated user document
+      await user.save();
+  
+      // Respond with the updated user document
+      res.status(200).json(user);
+    } catch (error) {
+      console.error('Error adding friends to user:', error);
+      res.status(500).json({ error: 'Internal server error.' });
+    }
+  });
+
+  router.delete('/users/:userId/remove-friends', async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const { friendIds } = req.body;
+  
+      // Find the user by ID
+      const user = await User.findById(userId);
+  
+      // Check if the user exists
+      if (!user) {
+        return res.status(404).json({ error: 'User not found.' });
+      }
+  
+      // Remove friends from the user's friends array
+      friendIds.forEach(friendId => {
+        const index = user.friends.indexOf(friendId);
+        if (index !== -1) {
+          user.friends.splice(index, 1);
+        }
+      });
+  
+      // Save the updated user document
+      await user.save();
+  
+      // Respond with the updated user document
+      res.status(200).json(user);
+    } catch (error) {
+      console.error('Error removing friends from user:', error);
+      res.status(500).json({ error: 'Internal server error.' });
+    }
+  });
+router.get('/:id', async (req, res) => {
+    try {
+      const userId = req.params.id;
+  
+      // Find the user by its ID
+      const user = await User.findById(userId)
+                            .populate('thoughts')
+                            .populate('friends');
+  
+      // Check if the user exists
+      if (!user) {
+        return res.status(404).json({ error: 'user not found.' });
+      }
+  
+      // Respond with the user
+      res.status(200).json(user);
+    } catch (error) {
+      console.error('Error fetching user by ID:', error);
+      res.status(500).json({ error: 'Internal server error.' });
+    }
+  });
+
 router.delete("/users/delete/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
@@ -73,4 +154,6 @@ router.delete("/users/delete/:userId", async (req, res) => {
         return res.status(500).json({ error: "Internal server error." });
       }
 })
+
+
 module.exports = router;
